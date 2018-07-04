@@ -50,7 +50,7 @@ Task("Default")
     .Does(() =>
 {
     owner = owner.Trim();
-    Information($"Querying GitHub repositories for owner '{owner}'");
+    Information($"Querying GitHub repositories for owner organistaion '{owner}'");
 
 
     // Url creation is currently implemented only for organistations:
@@ -68,14 +68,8 @@ Task("Default")
             GitUrl = (string) item["git_url"]
         });
     }
-
-    foreach(var item in repositoryInfos)
-    {
-        Information(item);
-    }    
     WriteCsv<RepositoryInfo>(repositoryCsvFileName, repositoryInfos, new CsvHelperSettings { HasHeaderRecord = true });
     Information($"{repositoryInfos.Count} repositories successfully queried and written to CSV file '{repositoryCsvFileName}'");
-
 });
 
 //--------------------------------------------------------------------
