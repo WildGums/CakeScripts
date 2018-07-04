@@ -146,6 +146,13 @@ foreach(var directory in directories)
         GitCommitTask(directory) ;
     });
 
+    // Individual task, can run with --target=git-push
+    // Will be executed for all specified folders
+    Task($"git-push {directory}")
+    .Does(() =>
+    {
+        GitPushTask(directory, gitUserName, gitPassword);
+    });
 
     // ------------------------------
     // Configure default dependency chain:
@@ -165,7 +172,7 @@ foreach(var directory in directories)
     .IsDependentOn($"clean-before-pull {directory}")
     .Does(() =>
     {
-        //GitPullTask(directory, gitUserName, gitPassword);
+        GitPullTask(directory, gitUserName, gitPassword);
     });    
 
     // Part of complex task 'default'. Do not run as target
@@ -222,14 +229,23 @@ foreach(var directory in directories)
         GitCommitTask(directory) ;
     });
 
-
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"git-push-internal {directory}")
+    .IsDependentOn($"git-commit-internal {directory}")        
+    .Does(() =>
+    {
+        GitPushTask(directory, gitUserName, gitPassword);
+    });
 
     // Complex 'default' task. Does all dependency steps for all folders
     Task($"default {directory}")
-    .IsDependentOn($"git-commit-internal {directory}")
+    .IsDependentOn($"git-push-internal {directory}")
     .Does(() =>
     {
     });        
+
+
 
     //-------------------------------------------------------------------------------------
     // EXECUTION
