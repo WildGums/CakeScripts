@@ -22,6 +22,7 @@
 // ARGUMENTS
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
+var configuration = Argument("configuration", "Debug");
 var workFolder = Argument("work-folder", "C:/TempRepos/"); 
 var gitUserName = Argument("git-username", "<username>");
 var gitPassword = Argument("git-password", "******");
@@ -121,8 +122,17 @@ foreach(var directory in directories)
         UpdateNuGetTask(directory);
     });
 
+    // Individual task, can run with --target=build
+    // Will be executed for all specified folders
+    Task($"build {directory}")
+    .Does(() =>
+    {
+        BuildTask(directory, configuration);
+    });
+
+
     // ------------------------------
-    // Build default dependency chain:
+    // Configure default dependency chain:
     // ------------------------------
 
     // Part of complex task 'default'. Do not run as target
@@ -169,9 +179,16 @@ foreach(var directory in directories)
         UpdateNuGetTask(directory);
     });
 
+    Task($"build-internal {directory}")
+    .IsDependentOn($"update-nuget-internal {directory}")    
+    .Does(() =>
+    {
+        BuildTask(directory, configuration);
+    });
+
     // Complex 'default' task. Does all dependency steps for all folders
     Task($"default {directory}")
-    .IsDependentOn($"update-nuget-internal {directory}")
+    .IsDependentOn($"build-internal {directory}")
     .Does(() =>
     {
     });        
