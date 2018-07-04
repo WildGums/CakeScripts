@@ -130,6 +130,15 @@ foreach(var directory in directories)
         BuildTask(directory, configuration);
     });
 
+    // Individual task, can run with --target=run-unit-tests
+    // Will be executed for all specified folders
+    Task($"run-unit-tests {directory}")
+    .Does(() =>
+    {
+        RunUnitTestsTask(directory, configuration);
+    });
+
+
 
     // ------------------------------
     // Configure default dependency chain:
@@ -149,7 +158,7 @@ foreach(var directory in directories)
     .IsDependentOn($"clean-before-pull {directory}")
     .Does(() =>
     {
-        GitPullTask(directory, gitUserName, gitPassword);
+        //GitPullTask(directory, gitUserName, gitPassword);
     });    
 
     // Part of complex task 'default'. Do not run as target
@@ -179,6 +188,8 @@ foreach(var directory in directories)
         UpdateNuGetTask(directory);
     });
 
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
     Task($"build-internal {directory}")
     .IsDependentOn($"update-nuget-internal {directory}")    
     .Does(() =>
@@ -186,9 +197,19 @@ foreach(var directory in directories)
         BuildTask(directory, configuration);
     });
 
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"run-unit-tests-internal {directory}")
+    .IsDependentOn($"build-internal {directory}")    
+    .Does(() =>
+    {
+        RunUnitTestsTask(directory, configuration);
+    });
+
+
     // Complex 'default' task. Does all dependency steps for all folders
     Task($"default {directory}")
-    .IsDependentOn($"build-internal {directory}")
+    .IsDependentOn($"run-unit-tests-internal {directory}")
     .Does(() =>
     {
     });        

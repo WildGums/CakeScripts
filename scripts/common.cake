@@ -87,22 +87,21 @@ public void BuildTask(string repositoryFolder, string configuration)
      }
 }
 
-public void RunUnitTestsTask(string outputFolder, string configuration)
+public void RunUnitTestsTask(string repositoryFolder, string configuration)
 {
     var folders = new []{
-        outputFolder + configuration + "/*.Tests.dll",
-        outputFolder + configuration + "/*.Test.dll",
+        $"{repositoryFolder}/output/{configuration}/**/*.Tests.dll",
+        $"{repositoryFolder}/output/{configuration}/**/*.Test.dll" ,      
         // For non WildGums conform projects:        
-        "./**/bin/" + configuration + "/*.Tests.dll",
-        "./**/bin/" + configuration + "/*.Test.dll"
+        $"{repositoryFolder}/**/bin/{configuration}/*.Tests.dll",
+        $"{repositoryFolder}/**/bin/{configuration}/*.Test.dll",
     };
 
     foreach(var folder in folders)
     {
-    NUnit3(folder, new NUnit3Settings {
-        NoResults = true
+        NUnit3(folder, new NUnit3Settings {
+            NoResults = true
         });
-
     }
 }
 
