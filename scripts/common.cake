@@ -2,16 +2,9 @@
 // Common reusable methods for repository operations
 // --------------------------------------------------
 
-public void CleanTask(string outputFolder, string repositoryFolder, string configuration)
+public void CleanAll(string repositoryFolder)
 {
-    CleanDirectory(outputFolder + configuration);
-    CleanDirectories(repositoryFolder + "/**/bin/" + configuration);
-    CleanDirectories(repositoryFolder + "/**/obj/" + configuration);    
-}
-
-public void CleanAllTask(string outputFolder, string repositoryFolder)
-{
-    CleanDirectory(outputFolder);
+    CleanDirectory(repositoryFolder + "/output");
     CleanDirectories(repositoryFolder +  "/**/bin");
     CleanDirectories(repositoryFolder + "/**/obj");    
     CleanDirectories(repositoryFolder + "/**/packages");    

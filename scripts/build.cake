@@ -39,6 +39,9 @@ class ControllInfo {
     public string PathFragment {get; set; }
 }
 
+// Filtered repository folders to process:
+IList<string> directories;
+
 //-------------------------------------------------------------------------------------
 // TASKS
 //-------------------------------------------------------------------------------------
@@ -56,15 +59,11 @@ Task("Initialize")
     {
         Information($"Processing folders in '{workFolder}' using controll file '{controllFileName}'.");
         var controllInfos = ReadCsv<ControllInfo>(controllFileName, new CsvHelperSettings { HasHeaderRecord = true });
-        foreach(var ci in controllInfos)
-        {
-            Information(ci.PathFragment);
-        }
         predicate = path => controllInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
     }
 
-    // GetDirectories build in filter overload does not work as expected, so uing LINQ instead:
-    var directories = GetDirectories($"{workFolder}*").Where(predicate);
+    // GetDirectories filterable overload does not work as expected, so uing LINQ instead:
+    directories = GetDirectories($"{workFolder}*").Where(predicate).Select(directoryPath => directoryPath.FullPath).ToList();
     Information($"{directories.Count()} repository folder(s) will be processed.");
 });
 
@@ -72,6 +71,10 @@ Task("Clean")
     .IsDependentOn("Initialize")
     .Does(() =>
 {
+    foreach(var directory in directories)
+    {
+        CleanAll(directory);
+    }
 });
 
 Task("Default")
