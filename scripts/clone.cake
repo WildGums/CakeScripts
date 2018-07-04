@@ -18,8 +18,6 @@
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
 var workFolder = Argument("work-folder", "C:/TempRepos/"); 
-var gitUserName = Argument("git-username", "<username>");
-var gitPassword = Argument("git-password", "******");
 var repositoryCsvFileName = Argument("repositories", "repositories.csv");
 var version = "1.0.0";
 
@@ -71,7 +69,7 @@ Task("Default")
                 };
 
                 // Unfortunately this overload does not work, giving an unrelated error message:
-                // Error while cloning 'https://github.com/pluraltouch/example.git': Failed to find workDirectoryPath: <correct path>
+                // Error while cloning 'https://github.com/...': Failed to find workDirectoryPath: <correct path>
                 // GitClone(info.CloneUrl, repositoryFolder, gitUserName, gitPassword, settings);
                 GitClone(info.CloneUrl, repositoryFolder, settings);
                 Information($"Repository '{info.CloneUrl}' successfully cloned to '{repositoryFolder}'.");

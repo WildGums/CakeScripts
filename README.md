@@ -2,55 +2,72 @@
 
 ## Goal
 
-The project's main goal is to implement automated Cake scripts for the following tasks:
+This project's main goal is to implement automated Cake scripts for the following tasks:
 
-1. Given a list of repositories and their URLs, clone all the repositories to a local directory. (i.e. clone all repos into C:\Source\ by default)
-2. Build a script to pull the latest changes from a repository and checkout the develop branch.
-3. Build a script to update packages to the latest versions given a control csv file.
-4. Build a script to build, run unit tests and if successful commit and push the changes back to the cloud repository
-5. Build a script to delete all bin, obj, and package folders (i.e. all artifacts.)
-6. A bonus script also implemented what is using the make dependency logic and chains the pull->clean->restore-nuget->update-nuget->build->run-unit-test->commit->push logic in one dependency chain.
+1. Create Cake script to query all repositories which belong to a given GitHub origanization
+2. Given a list of repositories and their URLs. Clone all the repositories to a local directory
+3. Given a folder of the cloned repositories and an optional control file. Create Cake script to clean, pull latest changes, restore and update packages, build, run unit test, commit and push those repositories
 
 ## Tips
 
-Use VS Code with the Cake and Powershell extensions
+1. Use VS Code with the Cake and Powershell extensions
+2. Before the very first run of any Cake script, initialize.ps1 script must be run once
+3. Because of version incompatibility of some used packeges with the latest Cake.Core, to prevent error messages you must use --settings_skipverification=true 
 
-## Task 1: Clone
+## Task #1: Query
 
 ### Function
 
-Given a list of repositories and their URLs, clone all the repositories to a local directory. (i.e. clone all repos into C:\Source\)
+Queries all repositories which belong to a given GitHub origanization
 
 ### Source Files
 
 ``` Text
-/tools/packages.config  // Standard Cake bootstrap file
-/initialize.ps1  // Customized WildGums init file to download Cake
-/clone.cake  // Implementation
-/repositories.csv // Identical with the originally specified WildGumsRepositories.csv
+/scripts/tools/packages.config  // Standard Cake bootstrap file, common for all scripts
+/scripts/initialize.ps1  // Customized WildGums init file to download Cake, common for all scripts
+/scripts/query.cake  // Implementation
 ```
 
 ### Command line arguments
 
 ```Text
---work-folder=... (defaults to: C:\Source\)
---git-username=...
---git-password=...
---repository-csv=...  (defaults to: repositories.csv)
+--owner-login=... (defaults to: WildGums), GitHub organization login name
+--repositories=...  (defaults to: repositories.csv), output file name
 ```
-
-### Deployment
-
-Unpack cake-scripts-clone.zip in any folder, and run initialize.ps1 in it. The working folder where the repositories will be cloned is configurable via a command line argument
 
 ### Run samples
 
-Note: Before the very first run the initialize.ps1 script must be run once
+``` PowerShell
+query.cake --settings_skipverification=true
+query.cake --repositories=custom.csv --settings_skipverification=true
+```
+
+## Task #2: Clone
+
+### Function
+
+Clones all specified repositories to a local directory
+
+### Source Files
+
+``` Text
+/scripts/tools/packages.config  // Standard Cake bootstrap file, common for all scripts
+/scripts/initialize.ps1  // Customized WildGums init file to download Cake, common for all scripts
+/scripts/clone.cake  // Implementation
+
+```
+
+### Command line arguments
+
+```Text
+--work-folder=... (defaults to: C:\Source\) 
+--repositories=...  (defaults to: repositories.csv)
+```
+
 
 ``` PowerShell
-tools/cake/cake ./clone.cake --git-username=myusername --git-password=mypassword --settings_skipverification=true
-
-tools/cake/cake ./clone.cake --git-username=myusername --git-password=mypassword --work-folder=c:/temp –repository-csv=priority-repsitories.csv
+clone.cake --settings_skipverification=true
+clone.cake --work-folder=c:/temp –repositories=custom-repsitories.csv
 ```
 
 ### Behavior comments
@@ -58,7 +75,7 @@ tools/cake/cake ./clone.cake --git-username=myusername --git-password=mypassword
 - If the main folder (for example: C:\Source) does not exist the script creates it
 - The repository folder names are inferred from the repository url (last part before the .git)
 - The repository folders automatically created
-- The "develop" branch is cloned, this is currently hardcoded
+- The "develop" branch is cloned. If there is no develop branch, then falls back to master
 - If the repository folder already exist, then the clone for that repository is skipped and a yellow warning message will be displayed to the user. This is because the clone overwrites the file (no merge) so potentially existing work would be destroyed.
 
 ### Implementation details
@@ -81,39 +98,38 @@ Note the version is pinned, i.e. we are not using the latest versions. The first
 **Cake.Git:** We must use older version of Cake.Git because of internal incompatibility with LibGit2Sharp  
 "error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<LibGit2Sharp.Tag>' to 'System.Collections.Generic.List<LibGit2Sharp.Tag>"
 
-### Referencing older Cake Core
+**Addin referencing older Cake.Core (Cake.CsvHelper)**
 
 Error: The assembly 'Cake.CsvHelper is referencing an older version of Cake.Core (0.23.0). This assembly must reference at least Cake.Core version 0.26.0.
 An option is to downgrade Cake to an earlier version. It's not recommended, but we can explicitly opt out of assembly verification by configuring the Skip Verification setting to true (i.e. command line parameter "--settings_skipverification=true" see sample commands
 
-## Task 2: Pull latest changes from develop branch
+## Task 3: Process
 
 ### Function
 
-Build a script to pull the latest changes from a repository and checkout the develop branch.
+Given a folder of the cloned repositories and an optional control file. This script cleans, pulls latest changes, restores and updates packages, builds, runs unit test, commits and pushes those repositories
 
 ### Source
 
 ```Text
-/tools/packages.config  // Standard Cake bootstrap file
-/initialize.ps1  // Customized WildGums init file to download Cake
-/common.cake  // Reusable Tasks
-/pull.cake // Implementation
+/scripts/tools/packages.config  // Standard Cake bootstrap file, common for all scripts
+/scripts/initialize.ps1  // Customized WildGums init file to download Cake, common for all scripts
+/scripts/common.cake  // Reusable Tasks
+/scripts/process.cake // Implementation
 ```
 
 ### Command line arguments
 
 ```Text
+--target=... (defaults to: do all) Can be: clean, git-pull, restore-nuget, update-nuget, build, run-unit-test, git-commit, git-push. .
+--configuration =... (defaults to: Debug) MSBuild configuration to use  
+--work-folder=... (defaults to: C:\Source\) 
 --git-username=...
 --git-password=...
+--control=... (defaults to: no controll file) // List of repositories to process. If there is no control 
+
 ```
 
-### Deployment
-
-Unpack cake-scripts.zip to an existing repository’s root folder and run initialize.ps1 in it.
-Run samples
-
-Note: Before the very first run the initialize.ps1 script must be run once
 
 ```PowerShell
 tools/cake/cake ./pull.cake --git-username=myusername --git-password=mypassword --settings_skipverification=true

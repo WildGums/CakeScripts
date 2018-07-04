@@ -6,13 +6,6 @@
 // (it references to class CsvClassMap which is renamed to ClassMap)
 #addin nuget:?package=Cake.CsvHelper&version=0.2.3&loaddependencies=true
 
-// Note #1: Cake.Git: The loaddependencies=true will only take effect 
-// in case using Cake built in NuGet support and not the external nuget.exe
-
-// Note #2: Cake.Git: We must use older version of Cake.Git because of internal incompatibility with LibGit2Sharp  
-// error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<LibGit2Sharp.Tag>' to 'System.Collections.Generic.List<LibGit2Sharp.Tag>'
-#addin nuget:?package=Cake.Git&version=0.16.1&loaddependencies=true
-
 #addin nuget:?package=Cake.Http
 #addin nuget:?package=Cake.Json
 #addin nuget:?package=Newtonsoft.Json&version=9.0.1
@@ -44,9 +37,9 @@ Information($"query.cake v{version}");
 Task("Default")
     .Does(() =>
 {
-    Information($"Querying GitHub repositories for owner organistaion '{owner}'");
+    Information($"Querying GitHub repositories for owner organization '{owner}'");
 
-    // Url creation is currently implemented only for organistations:
+    // Url creation is currently implemented only for organizations:
     string json = HttpGet($"https://api.github.com/orgs/{owner}/repos?per_page=200 ");
 
     // There is no support (alias) for JArray in Cake.Json, using NewtonSoft original class name: JArray.Parse

@@ -26,9 +26,9 @@ var configuration = Argument("configuration", "Debug");
 var workFolder = Argument("work-folder", "C:/TempRepos/"); 
 var gitUserName = Argument("git-username", "<username>");
 var gitPassword = Argument("git-password", "******");
-var controllFileName = Argument("controll", "");
+var controlFileName = Argument("control", "");
 var version = "1.0.0";
-Information($"build.cake v{version}");
+Information($"process.cake v{version}");
 
 public string GetRepositoryFolder(string cloneUrl)
 {
@@ -36,7 +36,7 @@ public string GetRepositoryFolder(string cloneUrl)
     return split.LastOrDefault()?? "created-"+ DateTime.Now.ToString("{yyyy-MM-dd-HH-mm-ss-fff}");
 }
 
-class ControllInfo {
+class ControlInfo {
     public string PathFragment {get; set; }
 }
 
@@ -47,15 +47,15 @@ class ControllInfo {
 workFolder = $"{workFolder.Replace("/", "\\").Trim('\\')}\\";
 Func<DirectoryPath, bool> predicate = dummy => true;
 
-if (string.IsNullOrEmpty(controllFileName))
+if (string.IsNullOrEmpty(controlFileName))
 {
-    Information($"Processing all folders in '{workFolder}'. No controll file was specified.");
+    Information($"Processing all folders in '{workFolder}'. No control file was specified.");
 }
 else
 {
-    Information($"Processing folders in '{workFolder}' using controll file '{controllFileName}'.");
-    var controllInfos = ReadCsv<ControllInfo>(controllFileName, new CsvHelperSettings { HasHeaderRecord = true });
-    predicate = path => controllInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
+    Information($"Processing folders in '{workFolder}' using control file '{controlFileName}'.");
+    var controlInfos = ReadCsv<ControlInfo>(controlFileName, new CsvHelperSettings { HasHeaderRecord = true });
+    predicate = path => controlInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
 }
 
 // GetDirectories filterable overload does not work as expected, so uing LINQ instead:
@@ -71,15 +71,15 @@ Task("Initialize")
     workFolder = $"{workFolder.Replace("/", "\\").Trim('\\')}\\";
     Func<DirectoryPath, bool> predicate = dummy => true;
     
-    if (string.IsNullOrEmpty(controllFileName))
+    if (string.IsNullOrEmpty(controlFileName))
     {
-        Information($"Processing all folders in '{workFolder}'. No controll file was specified.");
+        Information($"Processing all folders in '{workFolder}'. No control file was specified.");
     }
     else
     {
-        Information($"Processing folders in '{workFolder}' using controll file '{controllFileName}'.");
-        var controllInfos = ReadCsv<ControllInfo>(controllFileName, new CsvHelperSettings { HasHeaderRecord = true });
-        predicate = path => controllInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
+        Information($"Processing folders in '{workFolder}' using control file '{controlFileName}'.");
+        var controlInfos = ReadCsv<ControlInfo>(controlFileName, new CsvHelperSettings { HasHeaderRecord = true });
+        predicate = path => controlInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
     }
 
     // GetDirectories filterable overload does not work as expected, so uing LINQ instead:
