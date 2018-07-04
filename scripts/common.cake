@@ -4,11 +4,11 @@
 
 public void CleanTask(string repositoryFolder)
 {
-    CleanDirectory(repositoryFolder + "/output");
-    CleanDirectories(repositoryFolder +  "/**/bin");
-    CleanDirectories(repositoryFolder + "/**/obj");    
-    CleanDirectories(repositoryFolder + "/**/packages");    
-    // CleanDirectories(repositoryFolder + "/lib");        
+    CleanDirectory($"{repositoryFolder}/output");
+    CleanDirectories($"{repositoryFolder}/**/bin");
+    CleanDirectories($"{repositoryFolder}/**/obj");    
+    CleanDirectories($"{repositoryFolder}/**/packages");    
+    // CleanDirectories($"{repositoryFolder}/lib");        
 }
 
 public void GitPullTask(string repositoryFolder, string gitUserName, string gitPassword)
@@ -57,7 +57,7 @@ public void RestoreNuGetTask(string repositoryFolder)
     if (configFile != null)
     {
         //restoreSettings.ConfigFile = configFile;
-        restoreSettings.PackagesDirectory = "./lib";
+        restoreSettings.PackagesDirectory = $"{repositoryFolder}/lib";
     }
 
     // Restore the packages

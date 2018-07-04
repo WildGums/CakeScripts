@@ -39,10 +39,6 @@ class ControllInfo {
     public string PathFragment {get; set; }
 }
 
-
-
-
-
 //-------------------------------------------------------------------------------------
 // Initialize 
 //-------------------------------------------------------------------------------------
@@ -108,6 +104,23 @@ foreach(var directory in directories)
         GitPullTask(directory, gitUserName, gitPassword);
     });
 
+    // Individual task, can run with --target=restore-nuget
+    // Will be executed for all specified folders
+    Task($"restore-nuget {directory}")
+    .Does(() =>
+    {
+        RestoreNuGetTask(directory);
+    });
+
+    // Individual task, can run with --target=update-nuget
+    // Will be executed for all specified folders
+    Task($"update-nuget {directory}")
+    .IsDependentOn($"restore-nuget {directory}")
+    .Does(() =>
+    {
+        UpdateNuGetTask(directory);
+    });
+
     // ------------------------------
     // Build default dependency chain:
     // ------------------------------
@@ -138,17 +151,37 @@ foreach(var directory in directories)
         CleanTask(directory);
     });
 
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"restore-nuget-internal {directory}")
+    .IsDependentOn($"clean-after-pull {directory}")    
+    .Does(() =>
+    {
+        RestoreNuGetTask(directory);
+    });
+
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"update-nuget-internal {directory}")
+    .IsDependentOn($"restore-nuget-internal {directory}")
+    .Does(() =>
+    {
+        UpdateNuGetTask(directory);
+    });
 
     // Complex 'default' task. Does all dependency steps for all folders
     Task($"default {directory}")
-        .IsDependentOn($"clean-after-pull {directory}")
-        .Does(() =>
+    .IsDependentOn($"update-nuget-internal {directory}")
+    .Does(() =>
     {
     });        
 
     //-------------------------------------------------------------------------------------
     // EXECUTION
     //-------------------------------------------------------------------------------------
+
+    // Catch and display Exception for a particular repository, 
+    // then continue, allowing other repositories to be processed
     try
     {
         RunTarget($"{target} {directory}");     
