@@ -39,8 +39,31 @@ class ControllInfo {
     public string PathFragment {get; set; }
 }
 
-// Filtered repository folders to process:
-IList<string> directories;
+
+
+
+
+//-------------------------------------------------------------------------------------
+// Initialize 
+//-------------------------------------------------------------------------------------
+
+workFolder = $"{workFolder.Replace("/", "\\").Trim('\\')}\\";
+Func<DirectoryPath, bool> predicate = dummy => true;
+
+if (string.IsNullOrEmpty(controllFileName))
+{
+    Information($"Processing all folders in '{workFolder}'. No controll file was specified.");
+}
+else
+{
+    Information($"Processing folders in '{workFolder}' using controll file '{controllFileName}'.");
+    var controllInfos = ReadCsv<ControllInfo>(controllFileName, new CsvHelperSettings { HasHeaderRecord = true });
+    predicate = path => controllInfos.Any(ci => path.FullPath.ToLower().Contains(ci.PathFragment.ToLower()));
+}
+
+// GetDirectories filterable overload does not work as expected, so uing LINQ instead:
+var directories = GetDirectories($"{workFolder}*").Where(predicate).Select(directoryPath => directoryPath.FullPath).ToList();
+Information($"{directories.Count()} repository folder(s) will be processed.");
 
 //-------------------------------------------------------------------------------------
 // TASKS
@@ -67,24 +90,22 @@ Task("Initialize")
     Information($"{directories.Count()} repository folder(s) will be processed.");
 });
 
-Task("Clean")
-    .IsDependentOn("Initialize")
-    .Does(() =>
+
+foreach(var directory in directories)
 {
-    foreach(var directory in directories)
+    Task($"Clean {directory}")
+        .Does(() =>
+        {
+            CleanAll(directory);
+        });
+    Task($"Default {directory}")
+        .IsDependentOn($"Clean {directory}")
+        .Does(() =>
     {
-        CleanAll(directory);
-    }
-});
+    });
 
-Task("Default")
-    .IsDependentOn("Clean")
-    .Does(() =>
-{
-});
-
-//-------------------------------------------------------------------------------------
-// EXECUTION
-//-------------------------------------------------------------------------------------
-
-RunTarget(target);
+    //-------------------------------------------------------------------------------------
+    // EXECUTION
+    //-------------------------------------------------------------------------------------
+    RunTarget($"{target} {directory}"); 
+}
