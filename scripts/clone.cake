@@ -20,7 +20,7 @@ var target = Argument("target", "default");
 var workFolder = Argument("work-folder", "C:/TempRepos/"); 
 var gitUserName = Argument("git-username", "<username>");
 var gitPassword = Argument("git-password", "******");
-var repositoryCsvFileName = Argument("repository-csv", "repositories.csv");
+var repositoryCsvFileName = Argument("repositories", "repositories.csv");
 var version = "1.0.0";
 
 public string GetRepositoryFolder(string cloneUrl)
@@ -34,6 +34,8 @@ class RepositoryInfo {
     public string GitUrl {get; set; }
 }
 
+Information($"clone.cake v{version}");
+
 //-------------------------------------------------------------------------------------
 // TASKS
 //-------------------------------------------------------------------------------------
@@ -41,7 +43,6 @@ class RepositoryInfo {
 Task("Default")
     .Does(() =>
 {
-    Information($"clone.cake v{version}");
     var repositoryInfos = ReadCsv<RepositoryInfo>(repositoryCsvFileName, new CsvHelperSettings { HasHeaderRecord = true });
     
     Information($"Cloning {repositoryInfos.Count()} repositories to '{workFolder}'. Urls read from file '{repositoryCsvFileName}'");

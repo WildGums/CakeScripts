@@ -45,7 +45,7 @@ public void GitPullTask(string repositoryFolder, string gitUserName, string gitP
 public void RestoreNuGetTask(string repositoryFolder)
 {
     // Get all solutions (usually the One)
-    var solutions = GetFiles(repositoryFolder + "/**/*.sln");
+    var solutions = GetSolutionFiles(repositoryFolder);
 
     // Use custom restore settings:
     var restoreSettings = new NuGetRestoreSettings {
@@ -67,7 +67,7 @@ public void RestoreNuGetTask(string repositoryFolder)
 public void UpdateNuGetTask(string repositoryFolder)
 {
     // Get all solutions (usually the One)
-    var solutions = GetFiles(repositoryFolder + "/**/*.sln");
+    var solutions = GetSolutionFiles(repositoryFolder);
 
     // Update the packages
     // Use custom settings:
@@ -80,7 +80,7 @@ public void UpdateNuGetTask(string repositoryFolder)
 
 public void BuildTask(string repositoryFolder, string configuration)
 {
-     var solutions = GetFiles(repositoryFolder + "/**/*.sln");
+    var solutions = GetSolutionFiles(repositoryFolder);
      foreach(var solution in solutions)
      {
         MSBuild(solution, settings => settings.SetConfiguration(configuration));
@@ -123,4 +123,9 @@ public void GitCommitTask(string repositoryFolder)
 public void GitPushTask(string repositoryFolder, string gitUserName, string gitPassword)
 {
     GitPush(repositoryFolder, gitUserName, gitPassword);
+}
+
+private IEnumerable<FilePath> GetSolutionFiles(string repositoryFolder)
+{
+    return GetFiles(repositoryFolder + "/**/*.sln").Where(s => !s.FullPath.Contains("[")); // special templates
 }

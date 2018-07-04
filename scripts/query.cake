@@ -23,7 +23,7 @@
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
 var owner = Argument("owner-login", "WildGums"); 
-var repositoryCsvFileName = Argument("repository-csv", "repositories.csv");
+var repositoryCsvFileName = Argument("repositories", "repositories.csv");
 var version = "1.0.0";
 
 class RepositoryInfo {
@@ -35,6 +35,8 @@ class RepositoryInfo {
     }
 }
 
+Information($"query.cake v{version}");
+
 //--------------------------------------------------------------------
 // TASKS
 //--------------------------------------------------------------------
@@ -42,7 +44,6 @@ class RepositoryInfo {
 Task("Default")
     .Does(() =>
 {
-    Information($"query.cake v{version}");
     Information($"Querying GitHub repositories for owner organistaion '{owner}'");
 
     // Url creation is currently implemented only for organistations:
