@@ -22,15 +22,9 @@
 // ARGUMENTS
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
-var owner = Argument("owner-login", "WildGums"); // Currently implemented for organistations
-var workFolder = Argument("work-folder", "C:/Source/"); 
+var owner = Argument("owner-login", "WildGums"); 
 var repositoryCsvFileName = Argument("repository-csv", "repositories.csv");
-
-public string GetRepositoryFolder(string cloneUrl)
-{
-    var split = cloneUrl.Replace(".git", "").Split('/', '\\');
-    return split.LastOrDefault()?? "created-"+ DateTime.Now.ToString("{yyyy-MM-dd-HH-mm-ss-fff}");
-}
+var version = "1.0.0";
 
 class RepositoryInfo {
     public string CloneUrl {get; set; }
@@ -39,7 +33,6 @@ class RepositoryInfo {
     {
         return $"{nameof(CloneUrl)}: {CloneUrl}, {nameof(GitUrl)}: {GitUrl}";
     }
-
 }
 
 //--------------------------------------------------------------------
@@ -49,14 +42,13 @@ class RepositoryInfo {
 Task("Default")
     .Does(() =>
 {
-    owner = owner.Trim();
+    Information($"query.cake v{version}");
     Information($"Querying GitHub repositories for owner organistaion '{owner}'");
-
 
     // Url creation is currently implemented only for organistations:
     string json = HttpGet($"https://api.github.com/orgs/{owner}/repos?per_page=200 ");
 
-    // There is no support (alias) for JArray in Cake.Json, so using NewtonSoft original class name: JArray.Parse
+    // There is no support (alias) for JArray in Cake.Json, using NewtonSoft original class name: JArray.Parse
     var resultJArray = JArray.Parse(json);
 
     var repositoryInfos = new List<RepositoryInfo>();
