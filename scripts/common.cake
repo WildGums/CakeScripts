@@ -2,27 +2,43 @@
 // Common reusable methods for repository operations
 // --------------------------------------------------
 
-public void Clean(string repositoryFolder)
+public void CleanTask(string repositoryFolder)
 {
     CleanDirectory(repositoryFolder + "/output");
     CleanDirectories(repositoryFolder +  "/**/bin");
     CleanDirectories(repositoryFolder + "/**/obj");    
     CleanDirectories(repositoryFolder + "/**/packages");    
-    CleanDirectories(repositoryFolder + "/lib");        
+    // CleanDirectories(repositoryFolder + "/lib");        
 }
 
 public void GitPullTask(string repositoryFolder, string gitUserName, string gitPassword)
 {
-    // Note: The repo should not have uncommitted changes for this operation to work:
-    // Note: Object [develop] must be known in the local git config, so the original clone must clone that branch (too)
-    // It turned out that the following lines will silently overwrite local changes, so checking before:
+    // #1: The repo should not have uncommitted changes for this operation to work:
+    // #2: Object [develop] must be known in the local git config, so the original clone must clone that branch (too)
+    // In case [develop] object not found give a shot for [master]
+    // CheckOut will silently overwrite local changes, so checking before:
 
     if (GitHasUncommitedChanges(repositoryFolder))
     {
         throw new Exception($"Repository '{repositoryFolder}' has uncommitted changes. Please commit before pulling");
     }
+    try
+    {
+        GitCheckout(repositoryFolder, "develop", new FilePath[0]);        
+    }
+    catch(LibGit2Sharp.NotFoundException e)            
+    {
+        if (e.Message.Contains("develop"))
+        {
+            Warning($"Branch 'develop' not found in '{repositoryFolder}'. Trying to pull 'master'");    
+            GitCheckout(repositoryFolder, "master", new FilePath[0]);        
+            Information("Successfully pulled 'master'");
+        }
+        else{
+            throw;
+        }
+    }    
 
-    GitCheckout(repositoryFolder, "develop", new FilePath[0]);
     GitPull(repositoryFolder, "cake.merger", "cake.merger@wildgums.com", gitUserName, gitPassword, "origin");
 }
 

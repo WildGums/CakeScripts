@@ -90,22 +90,71 @@ Task("Initialize")
     Information($"{directories.Count()} repository folder(s) will be processed.");
 });
 
-
 foreach(var directory in directories)
 {
-    Task($"Clean {directory}")
-        .Does(() =>
-        {
-            CleanAll(directory);
-        });
-    Task($"Default {directory}")
-        .IsDependentOn($"Clean {directory}")
+    // Individual task, can run with --target=clean
+    // Will be executed for all specified folders
+    Task($"clean {directory}")
+    .Does(() =>
+    {
+        CleanTask(directory);
+    });
+
+    // Individual task, can run with --target=git-pull
+    // Will be executed for all specified folders
+    Task($"git-pull {directory}")
+    .Does(() =>
+    {
+        GitPullTask(directory, gitUserName, gitPassword);
+    });
+
+    // ------------------------------
+    // Build default dependency chain:
+    // ------------------------------
+
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"clean-before-pull {directory}")
+    .Does(() =>
+    {
+        CleanTask(directory);
+    });
+
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"git-pull-internal {directory}")
+    .IsDependentOn($"clean-before-pull {directory}")
+    .Does(() =>
+    {
+        GitPullTask(directory, gitUserName, gitPassword);
+    });    
+
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"clean-after-pull {directory}")
+    .IsDependentOn($"git-pull-internal {directory}")    
+    .Does(() =>
+    {
+        CleanTask(directory);
+    });
+
+
+    // Complex 'default' task. Does all dependency steps for all folders
+    Task($"default {directory}")
+        .IsDependentOn($"clean-after-pull {directory}")
         .Does(() =>
     {
-    });
+    });        
 
     //-------------------------------------------------------------------------------------
     // EXECUTION
     //-------------------------------------------------------------------------------------
-    RunTarget($"{target} {directory}"); 
+    try
+    {
+        RunTarget($"{target} {directory}");     
+    }
+    catch (Exception e)
+    {
+        Error($"Error while processing repository folder '{directory}'. {e.Message}");
+    }
 }
