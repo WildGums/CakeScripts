@@ -1,4 +1,6 @@
 */tools/Addins/
 */tools/Cake/
 */tools/nuget.exe
+*/tools/NUnit.ConsoleRunner.3.4.0
 *.md5sum
+
