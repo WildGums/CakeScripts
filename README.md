@@ -137,6 +137,9 @@ process.cake --target=clean
 process.cake --target=git-pull 
 process.cake --control=OrcLibraries.csv --git-username=myusername --git-password=mypassword
 ```
+### Control File
+The control file is a .csv file with one column: PathFragment. The column header in the very firs line is mandatory.
+
 
 ### Behaviour comments
 
