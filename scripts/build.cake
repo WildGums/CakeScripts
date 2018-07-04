@@ -138,6 +138,13 @@ foreach(var directory in directories)
         RunUnitTestsTask(directory, configuration);
     });
 
+    // Individual task, can run with --target=git-commit
+    // Will be executed for all specified folders
+    Task($"git-commit {directory}")
+    .Does(() =>
+    {
+        GitCommitTask(directory) ;
+    });
 
 
     // ------------------------------
@@ -206,10 +213,20 @@ foreach(var directory in directories)
         RunUnitTestsTask(directory, configuration);
     });
 
+    // Part of complex task 'default'. Do not run as target
+    // To do a full build use the default target, that will execute all dependency steps for all folders
+    Task($"git-commit-internal {directory}")
+    .IsDependentOn($"run-unit-tests-internal {directory}")        
+    .Does(() =>
+    {
+        GitCommitTask(directory) ;
+    });
+
+
 
     // Complex 'default' task. Does all dependency steps for all folders
     Task($"default {directory}")
-    .IsDependentOn($"run-unit-tests-internal {directory}")
+    .IsDependentOn($"git-commit-internal {directory}")
     .Does(() =>
     {
     });        
