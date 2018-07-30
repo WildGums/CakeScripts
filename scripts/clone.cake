@@ -17,7 +17,7 @@
 // ARGUMENTS
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
-var workFolder = Argument("work-folder", "C:/TempRepos/"); 
+var workFolder = Argument("work-folder", "C:/Source/"); 
 var repositoryCsvFileName = Argument("repositories", "repositories.csv");
 var version = "1.0.0";
 

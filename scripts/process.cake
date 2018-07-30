@@ -23,7 +23,7 @@
 //-------------------------------------------------------------------------------------
 var target = Argument("target", "default");
 var configuration = Argument("configuration", "Debug");
-var workFolder = Argument("work-folder", "C:/TempRepos/"); 
+var workFolder = Argument("work-folder", "C:/Source/"); 
 var gitUserName = Argument("git-username", "<username>");
 var gitPassword = Argument("git-password", "******");
 var controlFileName = Argument("control", "");

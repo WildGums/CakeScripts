@@ -11,14 +11,14 @@ This project's main goal is to implement automated Cake scripts for the followin
 ## Tips
 
 1. Use VS Code with the Cake and Powershell extensions
-2. Before the very first run of any Cake script, initialize.ps1 script must be run once
-3. Because of version incompatibility of some used packages with the latest Cake.Core, to prevent error messages you must use --settings_skipverification=true 
+2. Before the very first run of any Cake script, **initialize.ps1 script must be run once**
+3. Because of version incompatibility of some used packages with the latest Cake.Core, to prevent error messages you must use --settings_skipverification=true
 
 ## Task #1: Query
 
 ### Function
 
-Queries all repositories which belong to a given GitHub origanization
+Queries all repositories which belong to a given GitHub organization
 
 ### Source Files
 
@@ -60,7 +60,7 @@ Clones all specified repositories to a local directory
 ### Command line arguments
 
 ```Text
---work-folder=... (defaults to: C:\Source\) 
+--work-folder=... (defaults to: C:\Source\)
 --repositories=...  (defaults to: repositories.csv), List of repositories (urls) to clone
 ```
 ### Run samples
@@ -123,28 +123,30 @@ Given a folder of the cloned repositories and an optional control file. This scr
 ```Text
 --target=... (defaults to: do all) Can be: clean, git-pull, restore-nuget, update-nuget, build, run-unit-test, git-commit, git-push
 --configuration =... (defaults to: Debug) MSBuild configuration to use  
---work-folder=... (defaults to: C:\Source\) 
+--work-folder=... (defaults to: C:\Source\)
 --git-username=...
 --git-password=...
---control=... (defaults to: no controll file) // List of repositories to process. If there is no control file specified, all repositories will be processed in the work folder
+--control=... (defaults to: no control file) // List of repositories to process. If there is no control file specified, all repositories will be processed in the work folder
 
 ```
 
 ### Run samples
+
 ```PowerShell
 process.cake --git-username=myusername --git-password=mypassword --settings_skipverification=true
 process.cake --target=clean 
 process.cake --target=git-pull 
 process.cake --control=OrcLibraries.csv --git-username=myusername --git-password=mypassword
 ```
-### Control File
-The control file is a .csv file with one column: PathFragment. The column header in the very firs line is mandatory.
 
+### Control File
+
+The control file is a .csv file with one column: PathFragment. The column header in the very first line is mandatory.
 
 ### Behaviour comments
 
 - For to pull task the repository should not have uncommitted changes, because of the potential branch switch to the develop branch. To prevent loss, the script is checks for uncommitted changes, and in case there are throws exception $"Repository '{repositoryFolder}' has uncommitted changes. Please commit before pulling".
-- Object [develop] must be known in the local git config, so the original clone must clone that branch (too). In case of Object [develop] not found the opration falls back to the master branch
+- Object [develop] must be known in the local git config, so the original clone must clone that branch (too). In case of Object [develop] not found the operation falls back to the master branch
 - The update task NuGetUpdate() will not work in case there are no existing restored packages, so as a prerequisite dependency a restore task NuGetRestore() also implemented.
 - The GitCommit task causes errors and breaks the dependency chain if the there are no committable changes. That’s why it cannot be executed unconditionally, so conditional logic checks for uncommitted changes before and if there are no changes the GitCommit is skipped. The user will be informed with a custom message: "There were no uncommitted changes to commit"
 
@@ -174,4 +176,3 @@ Still can be solved with  workaround by hardcoding the package folder as /lib to
 #### NuGetUpdate
 
 The NuGetUpdate task seems to be hopeless: Hardcoded looking for the packages what are defined in packages.config, and in the NuGetUpdateSettings parameter there are no traces to configure look anywhere else.
-
